@@ -76,7 +76,7 @@ pub struct Stream {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Pagination {
-    pub cursor: String,
+    pub cursor: Option<String>,
 }
 
 #[async_trait]
