@@ -108,7 +108,7 @@ impl EventHandler for Handler {
 
                 loop {
                     let res = client
-                        .get("https://api.twitch.tv/helix/streams?game_id=32399&language=en")
+                        .get("https://api.twitch.tv/helix/streams?game_id=1511972274&language=en")
                         .headers(headers.clone())
                         .send()
                         .await;
