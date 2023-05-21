@@ -140,7 +140,7 @@ impl EventHandler for Handler {
                             dbg!(&res);
                         }
                     }
-                    tokio::time::sleep(Duration::from_secs(60)).await;
+                    tokio::time::sleep(Duration::from_secs(60 * 5)).await;
                 }
             });
             self.is_loop_running.swap(true, Ordering::Relaxed);
