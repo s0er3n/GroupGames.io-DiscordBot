@@ -108,31 +108,37 @@ impl EventHandler for Handler {
 
                 loop {
                     let res = client
-                        .get("https://api.twitch.tv/helix/streams?game_id=1511972274&language=en")
+                        .get("https://api.twitch.tv/helix/streams?game_id=1511972274")
                         .headers(headers.clone())
                         .send()
                         .await;
-                    if let Ok(res) = res {
-                        let data: TwitchResponse = res.json().await.expect("json");
+                    match res {
+                        Ok(res) => {
+                            let data: TwitchResponse = res.json().await.expect("json");
+                            dbg!(&data);
 
-                        let mut new_streamers: HashSet<String> = HashSet::new();
-                        for streamer in data.data {
-                            new_streamers.insert(streamer.user_name);
+                            let mut new_streamers: HashSet<String> = HashSet::new();
+                            for streamer in data.data {
+                                new_streamers.insert(streamer.user_name);
+                            }
+                            let diff = new_streamers.difference(&current_streamers);
+                            for streamer in diff {
+                                ChannelId(
+                                    env::var("DISCORD_CHANNEL_ID")
+                                        .expect("DISCORD")
+                                        .parse::<u64>()
+                                        .expect("DISCORD"),
+                                )
+                                .send_message(&ctx.http, |m| {
+                                    m.content(format!("https://twitch.tv/{}", streamer))
+                                })
+                                .await;
+                            }
+                            current_streamers = new_streamers;
                         }
-                        let diff = new_streamers.difference(&current_streamers);
-                        for streamer in diff {
-                            ChannelId(
-                                env::var("DISCORD_CHANNEL_ID")
-                                    .expect("DISCORD")
-                                    .parse::<u64>()
-                                    .expect("DISCORD"),
-                            )
-                            .send_message(&ctx.http, |m| {
-                                m.content(format!("https://twitch.tv/{}", streamer))
-                            })
-                            .await;
+                        _ => {
+                            dbg!(&res);
                         }
-                        current_streamers = new_streamers;
                     }
                     tokio::time::sleep(Duration::from_secs(60)).await;
                 }
